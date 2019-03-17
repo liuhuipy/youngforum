@@ -14,8 +14,36 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include, re_path
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+from common.urls import urlpatterns as common_urls
+
+api_info = openapi.Info(
+    title='Snippets API',
+    default_version='v1',
+    description='young forum',
+    terms_of_service="https://www.google.com/policies/terms/",
+    contact=openapi.Contact(email="contact@snippets.local"),
+    license=openapi.License(name="BSD License"),
+)
+
+schema_view = get_schema_view(
+    api_info,
+    url="http://localhost:80",
+    public=True,
+    permission_classes=(permissions.AllowAny,),
+)
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/v1/common/', include(common_urls)),
+    re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=None), name='schema-json'),
+    re_path(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=None), name='schema-swagger-ui'),
 ]
+
+urlpatterns += staticfiles_urlpatterns()
